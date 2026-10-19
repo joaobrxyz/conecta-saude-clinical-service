@@ -99,6 +99,7 @@ class MedicalRecordServiceTest {
 
                 when(repository.existsByAppointmentId(dto.appointmentId())).thenReturn(false);
                 when(identityClient.getDoctorById(doctorId)).thenReturn(doctorInfo);
+                when(appointmentClient.getAppointmentById(dto.appointmentId())).thenReturn(new com.example.clinical_service.dto.AppointmentInfoDTO(dto.appointmentId(), doctorId, dto.patientId(), "EM_ATENDIMENTO"));
 
                 // Simula o save retornando a entidade com ID gerado
                 MedicalRecord savedRecord = criarMedicalRecord(dto.patientId());
@@ -191,8 +192,8 @@ class MedicalRecordServiceTest {
             when(repository.findById(recordId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> medicalRecordService.buscarPorId(recordId))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("Prontuário não encontrado no sistema.");
+                    .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                    .hasMessageContaining("Prontuário não encontrado no sistema.");
         }
     }
 

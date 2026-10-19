@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface AppointmentClient {
 
     @GetMapping("/appointments/{id}")
-    Object getAppointmentById(@PathVariable("id") UUID id);
+    com.example.clinical_service.dto.AppointmentInfoDTO getAppointmentById(@PathVariable("id") UUID id);
 }

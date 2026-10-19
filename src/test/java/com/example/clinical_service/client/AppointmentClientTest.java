@@ -16,6 +16,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@org.springframework.test.context.ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @WireMockTest(httpPort = 8089) // Sobe um servidor falso na porta 8089
 @TestPropertySource(properties = {

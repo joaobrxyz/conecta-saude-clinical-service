@@ -15,6 +15,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@org.springframework.test.context.ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @WireMockTest(httpPort = 8090) // Agora o servidor vai ligar corretamente antes dos métodos
 @TestPropertySource(properties = {

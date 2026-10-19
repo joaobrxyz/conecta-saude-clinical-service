@@ -46,7 +46,13 @@ public class MedicalRecordService {
         try {
             doctorInfo = identityClient.getDoctorById(doctorId);
             identityClient.getPatientById(request.patientId());
-            appointmentClient.getAppointmentById(request.appointmentId());
+            var appointment = appointmentClient.getAppointmentById(request.appointmentId());
+            if (appointment == null || !doctorId.equals(appointment.doctorId()) || !request.patientId().equals(appointment.patientId())) {
+                throw new IllegalArgumentException("A consulta não corresponde ao médico e paciente informados.");
+            }
+            if (!"EM_ATENDIMENTO".equals(appointment.status())) {
+                throw new IllegalArgumentException("Inicie o atendimento antes de salvar o prontuário.");
+            }
         } catch (FeignException.NotFound e) {
             throw new IllegalArgumentException("Erro de validação: Médico, paciente ou consulta não encontrados no sistema.");
         }
@@ -100,15 +106,16 @@ public class MedicalRecordService {
 
     public MedicalRecord buscarPorId(String id) {
         return repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Prontuário não encontrado no sistema."));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Prontuário não encontrado no sistema."));
     }
 
     public MedicalRecord buscarPorAgendamento(UUID appointmentId) {
         return repository.findByAppointmentId(appointmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Nenhum registo clínico encontrado para esta consulta."));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Nenhum registo clínico encontrado para esta consulta."));
     }
 
     public void adicionarAdendo(String id, String addendumText) {
+        if (addendumText == null || addendumText.isBlank()) throw new IllegalArgumentException("Informe o texto do adendo.");
         MedicalRecord record = buscarPorId(id);
         String currentNotes = record.getPrivateNotes() != null ? record.getPrivateNotes() : "";
 

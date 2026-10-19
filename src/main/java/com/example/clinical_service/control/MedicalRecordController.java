@@ -39,11 +39,11 @@ public class MedicalRecordController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('MEDICO', 'PACIENTE')")
     public ResponseEntity<MedicalRecord> buscarProntuarioDetalhado(@PathVariable String id) {
-        return ResponseEntity.ok(service.buscarPorId(id));
+        return ResponseEntity.ok(com.example.clinical_service.security.RecordAccess.visible(service.buscarPorId(id)));
     }
 
     @GetMapping("/patient/{patientId}")
-    @PreAuthorize("hasAnyRole('MEDICO', 'PACIENTE')")
+    @PreAuthorize("hasRole('MEDICO') or (hasRole('PACIENTE') and #patientId.toString() == authentication.name)")
     public ResponseEntity<List<MedicalRecordSummaryDTO>> listarHistoricoPaciente(@PathVariable UUID patientId) {
         return ResponseEntity.ok(service.listarHistoricoPaciente(patientId));
     }
@@ -51,12 +51,13 @@ public class MedicalRecordController {
     @GetMapping("/appointment/{appointmentId}")
     @PreAuthorize("hasAnyRole('MEDICO', 'PACIENTE')")
     public ResponseEntity<MedicalRecord> buscarProntuarioDaConsulta(@PathVariable UUID appointmentId) {
-        return ResponseEntity.ok(service.buscarPorAgendamento(appointmentId));
+        return ResponseEntity.ok(com.example.clinical_service.security.RecordAccess.visible(service.buscarPorAgendamento(appointmentId)));
     }
 
     @PatchMapping("/{id}/addendum")
     @PreAuthorize("hasRole('MEDICO')")
     public ResponseEntity<Void> adicionarAdendo(@PathVariable String id, @RequestBody String addendumText) {
+        com.example.clinical_service.security.RecordAccess.requireAuthor(service.buscarPorId(id));
         service.adicionarAdendo(id, addendumText);
         return ResponseEntity.noContent().build();
     }
@@ -66,7 +67,7 @@ public class MedicalRecordController {
     // ==========================================
 
     @GetMapping("/patient/{patientId}/vitals/latest")
-    @PreAuthorize("hasAnyRole('MEDICO', 'PACIENTE')")
+    @PreAuthorize("hasRole('MEDICO') or (hasRole('PACIENTE') and #patientId.toString() == authentication.name)")
     public ResponseEntity<Vitals> buscarUltimosSinaisVitais(@PathVariable UUID patientId) {
         return ResponseEntity.ok(service.buscarUltimosSinaisVitais(patientId));
     }
@@ -76,7 +77,7 @@ public class MedicalRecordController {
     // ==========================================
 
     @GetMapping("/patient/{patientId}/prescriptions")
-    @PreAuthorize("hasAnyRole('MEDICO', 'PACIENTE')")
+    @PreAuthorize("hasRole('MEDICO') or (hasRole('PACIENTE') and #patientId.toString() == authentication.name)")
     public ResponseEntity<List<PrescriptionResponseDTO>> listarPrescricoesPaciente(@PathVariable UUID patientId) {
         return ResponseEntity.ok(service.listarPrescricoesPaciente(patientId));
     }
@@ -85,8 +86,8 @@ public class MedicalRecordController {
     @PreAuthorize("hasRole('PACIENTE')")
     public ResponseEntity<Void> solicitarRenovacaoReceita(@PathVariable UUID prescriptionId) {
         // Envia uma notificação/mensagem para o médico aprovar uma nova receita
-        service.solicitarRenovacao(prescriptionId);
-        return ResponseEntity.accepted().build();
+        throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Renovação de receitas ainda não disponível.");
+
     }
 
     // ==========================================
@@ -94,10 +95,9 @@ public class MedicalRecordController {
     // ==========================================
 
     @GetMapping("/patient/{patientId}/export")
-    @PreAuthorize("hasAnyRole('MEDICO', 'PACIENTE')")
+    @PreAuthorize("hasRole('MEDICO') or (hasRole('PACIENTE') and #patientId.toString() == authentication.name)")
     public ResponseEntity<byte[]> exportarHistoricoCompletoPDF(@PathVariable UUID patientId) {
         // Retorna um array de bytes configurado com cabeçalho "application/pdf"
-        byte[] pdf = service.gerarPdfHistorico(patientId);
-        return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=historico.pdf").body(pdf);
+        throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Exportação PDF ainda não disponível.");
     }
 }

@@ -31,6 +31,12 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MedicalRecordControllerTest {
+    private final UUID author = UUID.randomUUID();
+    @org.junit.jupiter.api.BeforeEach void login() {
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(author.toString(), null, List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_MEDICO"))));
+    }
+    @org.junit.jupiter.api.AfterEach void clear() { org.springframework.security.core.context.SecurityContextHolder.clearContext(); }
+
 
     @InjectMocks
     MedicalRecordController controller;
@@ -107,6 +113,7 @@ class MedicalRecordControllerTest {
             String recordId = "mongo-id-123";
             MedicalRecord mockRecord = new MedicalRecord();
             mockRecord.setId(recordId);
+            mockRecord.setDoctorId(author);
 
             when(service.buscarPorId(recordId)).thenReturn(mockRecord);
 
@@ -147,6 +154,8 @@ class MedicalRecordControllerTest {
             String recordId = "mongo-id-123";
             String texto = "Nova anotação médica";
 
+            MedicalRecord record = new MedicalRecord(); record.setDoctorId(author);
+            when(service.buscarPorId(recordId)).thenReturn(record);
             doNothing().when(service).adicionarAdendo(recordId, texto);
 
             ResponseEntity<Void> resposta = controller.adicionarAdendo(recordId, texto);
@@ -188,12 +197,7 @@ class MedicalRecordControllerTest {
         void sucesso() {
             UUID prescriptionId = UUID.randomUUID();
 
-            doNothing().when(service).solicitarRenovacao(prescriptionId);
-
-            ResponseEntity<Void> resposta = controller.solicitarRenovacaoReceita(prescriptionId);
-
-            assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-            verify(service, times(1)).solicitarRenovacao(prescriptionId);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.solicitarRenovacaoReceita(prescriptionId)).isInstanceOf(org.springframework.web.server.ResponseStatusException.class).hasMessageContaining("501");
         }
     }
 
@@ -208,18 +212,7 @@ class MedicalRecordControllerTest {
         @Test
         void sucesso() {
             UUID patientId = UUID.randomUUID();
-            byte[] mockPdfBytes = "Mock PDF Content".getBytes();
-
-            when(service.gerarPdfHistorico(patientId)).thenReturn(mockPdfBytes);
-
-            ResponseEntity<byte[]> resposta = controller.exportarHistoricoCompletoPDF(patientId);
-
-            assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(resposta.getBody()).isEqualTo(mockPdfBytes);
-
-            // Verifica se o cabeçalho para forçar o download foi adicionado corretamente
-            assertThat(resposta.getHeaders().get("Content-Disposition").get(0))
-                    .isEqualTo("attachment; filename=historico.pdf");
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.exportarHistoricoCompletoPDF(patientId)).isInstanceOf(org.springframework.web.server.ResponseStatusException.class).hasMessageContaining("501");
         }
     }
 }

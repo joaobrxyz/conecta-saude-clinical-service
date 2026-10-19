@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public record DoctorInfoDTO(
         UUID id,
-        String name,
-        String specialty
+        @com.fasterxml.jackson.annotation.JsonAlias("nome") String name,
+        @com.fasterxml.jackson.annotation.JsonAlias("especialidade") String specialty
 ) {}
